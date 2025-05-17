@@ -176,6 +176,9 @@ const ADVANCE_MS = 10000
 const POLL_MS = 600
 const MAX_BLOCKS = 4
 
+// Add timer for automatic row advancement
+let lastAdvanceTime = Date.now()
+
 const STAR = {ZERO:0xffffff,SMALL:0xff4545,MED:0xd34ad8,LARGE:0x5f6fe3,HUGE:0x69d45b}
 const amtColor = a => a===0?STAR.ZERO:a<1?STAR.SMALL:a<=1000?STAR.MED:a<=100000?STAR.LARGE:STAR.HUGE
 const getHealth = a => a===0?1:a<1?2:a<=1000?4:a<=100000?8:16
@@ -279,11 +282,29 @@ resizeCanvas()
 window.addEventListener('resize', resizeCanvas)
 
 /* ========== Game Logic ========== */
+function isRowFull() {
+  // Count ships in the top row
+  const topY = window.innerWidth <= 480 ? 140 : 90
+  const shipsInTopRow = grid.filter(ship => Math.abs(ship.y - topY) < 1).length
+  return shipsInTopRow >= GRID_COLS
+}
+
+function dropRows() {
+  if (grid.length === 0) return  // Don't drop if no ships
+  grid.forEach(ship => {
+    ship.y += ROW_H
+    if (ship.y > canvas.height - ROW_H) gameOver()
+  })
+  // Reset free columns after dropping rows
+  freeCols = [...Array(GRID_COLS).keys()]
+}
+
 function spawnShip(val) {
   if (isOver) return
-  if (freeCols.length === 0) {
+  // Only advance if the row is actually full
+  if (isRowFull()) {
     dropRows()
-    freeCols = [...Array(GRID_COLS).keys()]
+    lastAdvanceTime = Date.now()
   }
   const col = freeCols.splice(Math.random() * freeCols.length | 0, 1)[0]
   const cellW = canvas.width / GRID_COLS
@@ -295,13 +316,6 @@ function spawnShip(val) {
   const health = getHealth(val)
   const score = getScore(val)
   grid.push(new Ship(x, y, color, health, score, col))
-}
-
-function dropRows() {
-  grid.forEach(ship => {
-    ship.y += ROW_H
-    if (ship.y > canvas.height - ROW_H) gameOver()
-  })
 }
 
 function shoot() {
@@ -349,6 +363,16 @@ function gameLoop() {
   if (!isPaused && !isOver) {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     
+    // Check if it's time to advance rows
+    const now = Date.now()
+    const timeSinceLastAdvance = now - lastAdvanceTime
+    const shouldAdvance = (timeSinceLastAdvance >= ADVANCE_MS || isRowFull()) && grid.length > 0
+    
+    if (shouldAdvance) {
+      dropRows()
+      lastAdvanceTime = now
+    }
+    
     // Draw all game objects
     grid.forEach(ship => ship.draw())
     bullets.forEach(bullet => bullet.draw())
@@ -358,6 +382,16 @@ function gameLoop() {
   }
   requestAnimationFrame(gameLoop)
 }
+
+// Initialize the game
+function initGame() {
+  lastAdvanceTime = Date.now()
+  console.log('Game initialized, starting timer at:', lastAdvanceTime)
+  gameLoop()
+}
+
+// Start the game
+initGame()
 
 /* ========== RPC poll ========== */
 const seen = new Set()
@@ -480,9 +514,6 @@ document.querySelector('.close-button').addEventListener('click', () => {
   document.querySelector('.about-modal').style.display = 'none'
   playSound('button')
 })
-
-// Start the game loop
-gameLoop()
 
 // Update grid columns when window resizes
 window.addEventListener('resize', () => {
