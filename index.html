@@ -465,14 +465,15 @@ function updateBullets(){
     }
     for(let j = grid.length - 1; j >= 0; j--){
       const s = grid[j]
-      const hit = s.size * 0.8
-      if(Math.abs(b.x - s.x) < hit && Math.abs(b.y - s.y) < hit){
+      // Increase hit area on mobile devices
+      const hitMultiplier = window.innerWidth <= 480 ? 1.2 : 0.8
+      const hit = s.size * hitMultiplier
+      // Use a more generous hit area for y-axis
+      const hitY = s.size * (hitMultiplier * 1.5)
+      if(Math.abs(b.x - s.x) < hit && Math.abs(b.y - s.y) < hitY){
         s.health--
         if(s.health <= 0){
-          // Use the actual stored transaction amount
           explosions.push(new Explosion(s.x, s.y, s.amount));
-          
-          // Remove ship and update score
           grid.splice(j,1)
           score += s.score
           document.getElementById('score').textContent = score
