@@ -192,13 +192,32 @@ class Ship{
     this.size = getShipSize()
   }
   draw(){
-    ctx.fillStyle = `#${this.color.toString(16).padStart(6,'0')}`
-    ctx.beginPath()
-    ctx.moveTo(this.x - this.size/2, this.y - this.size/2)
-    ctx.lineTo(this.x + this.size/2, this.y - this.size/2)
-    ctx.lineTo(this.x,               this.y + this.size/2)
-    ctx.closePath()
-    ctx.fill()
+    const pixelGrid = 11;
+    const pixelSize = this.size / pixelGrid;
+    const halfSize = this.size / 2;
+    ctx.fillStyle = `#${this.color.toString(16).padStart(6,'0')}`;
+    // Ship body only, no bottom triangle/flame
+    const pixelMap = [
+      [0,0,0,1,0,0,0,1,0,0,0], // tips
+      [0,0,0,1,1,0,1,1,0,0,0], // lower wings
+      [1,1,1,1,1,1,1,1,1,1,1], // wings
+      [0,1,1,1,1,1,1,1,1,1,0], // wings
+      [0,0,1,1,1,1,1,1,1,0,0], // wings
+      [0,0,0,1,1,1,1,1,0,0,0], // body
+      [0,0,0,0,1,1,1,0,0,0,0], // body
+      [0,0,0,0,0,1,0,0,0,0,0], // nose
+    ];
+    for(let row=0; row<pixelMap.length; row++){
+      for(let col=0; col<pixelGrid; col++){
+        if(pixelMap[row][col]){
+          ctx.fillRect(
+            this.x - halfSize + col * pixelSize,
+            this.y - halfSize + row * pixelSize,
+            pixelSize, pixelSize
+          );
+        }
+      }
+    }
   }
 }
 
