@@ -1,8 +1,8 @@
 # sonic-invaders
 
 A space shooter game that visualizes transactions on the Sonic blockchain.
-Each ship represents a transaction, with its size and color indicating the transaction value.
-Shoot the ships to score points! The bigger the transaction, the more points you get.
+Each ship represents a transaction, with its color indicating the transaction value.
+Shoot the ships to score points! The bigger the transaction, the more bullets required.
 Switch between LIVE and BLAZE modes to play on different networks.
 
 ## About
