@@ -179,7 +179,7 @@ const MAX_BLOCKS = 4
 const STAR = {ZERO:0xffffff,SMALL:0xff4545,MED:0xd34ad8,LARGE:0x5f6fe3,HUGE:0x69d45b}
 const amtColor = a => a===0?STAR.ZERO:a<1?STAR.SMALL:a<=1000?STAR.MED:a<=100000?STAR.LARGE:STAR.HUGE
 const getHealth = a => a===0?1:a<1?2:a<=1000?4:a<=100000?8:16
-const getScore = a => a===0?1:a<1?2:a<=1000?4:a<=100000?8:16
+const getScore = a => a===0?1:a<1?4:a<=1000?8:a<=100000?16:32
 
 /* ========== Canvas Setup ========== */
 const canvas = document.getElementById('gameCanvas')
