@@ -289,7 +289,7 @@ function spawnShip(val) {
   const cellW = canvas.width / GRID_COLS
   const x = cellW * col + cellW / 2
   // Start ships below the UI
-  const startY = window.innerWidth <= 480 ? 140 : 80  // Higher start position on mobile
+  const startY = window.innerWidth <= 480 ? 140 : 90  // Higher start position on mobile
   const y = startY
   const color = amtColor(val)
   const health = getHealth(val)
