@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Sonic Invaders</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="shortcut icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-title" content="MyWebSite" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="stylesheet" href="style.css">
+
+  <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="expires" content="0">
+  <meta http-equiv="pragma" content="no-cache">
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Sonic Invaders" />
+  <meta name="twitter:image" content="https://invaders.paintoshi.dev/og.png" />
+  <meta name="twitter:domain" content="paintoshi.dev" />
+  <meta name="twitter:site" content="@paintoshi" />
+  <meta name="twitter:creator" content="@paintoshi" />
+  <meta name="twitter:description" content="A space shooter game that visualizes transactions on the Sonic blockchain." />
+  <meta property="og:title" content="Sonic Invaders" />
+  <meta property="og:description" content="A space shooter game that visualizes transactions on the Sonic blockchain." />
+  <meta property="og:image" content="https://invaders.paintoshi.dev/og.png" />
+  <meta property="og:url" content="https://invaders.paintoshi.dev" />
+</head>
+<body>
+
+<!-- overlay -->
+<div id="ui">
+  <div id="top">
+    <div id="stats">
+      <div><span class="label">TPS</span><span id="tps" class="value">0</span></div>
+      <div><span class="label">SCORE</span><span id="score" class="value">0</span></div>
+    </div>
+
+    <div id="controls">
+      <a id="mode-toggle" href="#"><span class="mode-live">LIVE</span><span class="separator">|</span><span class="mode-blaze">BLAZE</span></a>
+      <button id="pause" title="Pause">
+        <svg class="pause-icon" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+        <svg class="play-icon"  viewBox="0 0 24 24" style="display:none"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <a id="about" href="#">?</a>
+    </div>
+  </div>
+</div>
+
+<!-- game-over -->
+<div id="gameover">
+  <div id="final">GAME OVER</div>
+  <button id="restart">Play Again</button>
+</div>
+
+<!-- about modal -->
+<div class="about-modal">
+  <div class="content">
+    <h2>Sonic Invaders</h2>
+    <p>A space shooter game that visualizes transactions on the Sonic blockchain.</p>
+    <p>Each ship represents a transaction, with its size and color indicating the transaction value.</p>
+    <p>Shoot the ships to score points! The bigger the transaction, the more points you get.</p>
+    <p>Switch between LIVE and BLAZE modes to play on different networks.</p>
+    
+    <p><a href="https://github.com/paintoshi/sonic-invaders" target="_blank" rel="noopener noreferrer">View on GitHub</a></p>
+    
+    <div class="color-legend">
+      <h3>Ship Colors</h3>
+      <div class="color-grid">
+        <span class="color-dot" style="color: #ffffff;">⬤</span><span class="color-text">0 S</span>
+        <span class="color-dot" style="color: #ff4545;">⬤</span><span class="color-text">0 - 1 S</span>
+        <span class="color-dot" style="color: #d34ad8;">⬤</span><span class="color-text">1 - 1,000 S</span>
+        <span class="color-dot" style="color: #5f6fe3;">⬤</span><span class="color-text">1,000 - 100,000 S</span>
+        <span class="color-dot" style="color: #69d45b;">⬤</span><span class="color-text">> 100,000 S</span>
+      </div>
+    </div>
+  </div>
+  <button class="close-button">Close</button>
+</div>
+
+<canvas id="gameCanvas"></canvas>
+
+<script>
+/* ========== constants & helpers ========== */
+const LIVE_RPC='https://rpc.soniclabs.com'
+const TESTNET_RPC='https://rpc.blaze.soniclabs.com'
+// const TESTNET_RPC='http://localhost:3000'
+let RPC_URL=localStorage.getItem('rpcMode')==='blaze'?TESTNET_RPC:LIVE_RPC
+
+// Audio context and sounds
+let audioContext
+const sounds = {}
+
+// Initialize audio
+function initAudio() {
+  audioContext = new (window.AudioContext || window.webkitAudioContext)()
+  
+  // Create shoot sound
+  sounds.shoot = () => {
+    const oscillator = audioContext.createOscillator()
+    const gainNode = audioContext.createGain()
+    oscillator.connect(gainNode)
+    gainNode.connect(audioContext.destination)
+    oscillator.type = 'square'
+    oscillator.frequency.setValueAtTime(880, audioContext.currentTime)
+    oscillator.frequency.exponentialRampToValueAtTime(440, audioContext.currentTime + 0.1)
+    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime)
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1)
+    oscillator.start()
+    oscillator.stop(audioContext.currentTime + 0.1)
+  }
+  
+  // Create hit sound
+  sounds.hit = () => {
+    const oscillator = audioContext.createOscillator()
+    const gainNode = audioContext.createGain()
+    oscillator.connect(gainNode)
+    gainNode.connect(audioContext.destination)
+    oscillator.type = 'triangle'
+    oscillator.frequency.setValueAtTime(660, audioContext.currentTime)
+    oscillator.frequency.exponentialRampToValueAtTime(330, audioContext.currentTime + 0.15)
+    gainNode.gain.setValueAtTime(0.15, audioContext.currentTime)
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15)
+    oscillator.start()
+    oscillator.stop(audioContext.currentTime + 0.15)
+  }
+  
+  // Create explosion sound
+  sounds.explosion = () => {
+    const oscillator = audioContext.createOscillator()
+    const gainNode = audioContext.createGain()
+    oscillator.connect(gainNode)
+    gainNode.connect(audioContext.destination)
+    oscillator.type = 'sawtooth'
+    oscillator.frequency.setValueAtTime(220, audioContext.currentTime)
+    oscillator.frequency.exponentialRampToValueAtTime(55, audioContext.currentTime + 0.2)
+    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime)
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2)
+    oscillator.start()
+    oscillator.stop(audioContext.currentTime + 0.2)
+  }
+  
+  // Create button sound
+  sounds.button = () => {
+    const oscillator = audioContext.createOscillator()
+    const gainNode = audioContext.createGain()
+    oscillator.connect(gainNode)
+    gainNode.connect(audioContext.destination)
+    oscillator.type = 'sine'
+    oscillator.frequency.setValueAtTime(440, audioContext.currentTime)
+    oscillator.frequency.exponentialRampToValueAtTime(880, audioContext.currentTime + 0.1)
+    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime)
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1)
+    oscillator.start()
+    oscillator.stop(audioContext.currentTime + 0.1)
+  }
+}
+
+// Play sound function
+function playSound(name) {
+  if (!audioContext) initAudio()
+  if (sounds[name]) sounds[name]()
+}
+
+// Initialize audio on first user interaction
+document.addEventListener('click', () => {
+  if (!audioContext) initAudio()
+}, { once: true })
+
+const GRID_COLS = window.innerWidth <= 1000 ? 50 : 100  // Half the columns on small screens
+const ROW_H = 40
+const ADVANCE_MS = 10000
+const POLL_MS = 600
+const MAX_BLOCKS = 4
+
+const STAR = {ZERO:0xffffff,SMALL:0xff4545,MED:0xd34ad8,LARGE:0x5f6fe3,HUGE:0x69d45b}
+const amtColor = a => a===0?STAR.ZERO:a<1?STAR.SMALL:a<=1000?STAR.MED:a<=100000?STAR.LARGE:STAR.HUGE
+const getHealth = a => a===0?1:a<1?2:a<=1000?3:a<=100000?4:5
+const getScore = a => a===0?1:a<1?2:a<=1000?3:a<=100000?4:5
+
+/* ========== Canvas Setup ========== */
+const canvas = document.getElementById('gameCanvas')
+const ctx = canvas.getContext('2d')
+
+/* ========== Game Objects ========== */
+class Ship {
+  constructor(x, y, color, health, score, col) {
+    this.x = x
+    this.y = y
+    this.color = color
+    this.health = health
+    this.maxHealth = health
+    this.score = score
+    this.col = col
+    this.size = getShipSize()
+  }
+
+  draw() {
+    ctx.fillStyle = `#${this.color.toString(16).padStart(6, '0')}`
+    ctx.beginPath()
+    ctx.moveTo(this.x - this.size/2, this.y - this.size/2)  // Left point
+    ctx.lineTo(this.x + this.size/2, this.y - this.size/2)  // Right point
+    ctx.lineTo(this.x, this.y + this.size/2)                // Bottom point
+    ctx.closePath()
+    ctx.fill()
+  }
+}
+
+class Bullet {
+  constructor(x, y) {
+    this.x = x
+    this.y = y
+    this.width = 5
+    this.height = 8
+  }
+
+  draw() {
+    ctx.fillStyle = '#ffff00'
+    ctx.fillRect(this.x - this.width/2, this.y - this.height, this.width, this.height)
+  }
+}
+
+class Cannon {
+  constructor() {
+    this.x = canvas.width / 2
+    this.y = canvas.height - 40
+    this.width = 30  // Fixed width
+    this.height = 30  // Fixed height
+  }
+
+  draw() {
+    ctx.fillStyle = '#00ff00'
+    ctx.beginPath()
+    ctx.moveTo(this.x - this.width/2, this.y)
+    ctx.lineTo(this.x, this.y - this.height)
+    ctx.lineTo(this.x + this.width/2, this.y)
+    ctx.closePath()
+    ctx.fill()
+  }
+}
+
+/* ========== Game State ========== */
+let score = 0
+let isPaused = false
+let isOver = false
+let freeCols = [...Array(GRID_COLS).keys()]
+const grid = []
+const bullets = []
+const rpcTimes = []
+let lastTPS = 0
+let TPS = 0
+const TPS_WINDOW = 10000
+const cannon = new Cannon()
+
+function getShipSize() {
+  return canvas.width / GRID_COLS  // Simple division of window width by number of columns
+}
+
+function updateShipSizes() {
+  const cellW = canvas.width / GRID_COLS
+  const newSize = getShipSize()
+  grid.forEach(ship => {
+    ship.size = newSize
+    ship.x = cellW * ship.col + cellW / 2
+  })
+}
+
+// Set canvas size to match window size
+function resizeCanvas() {
+  canvas.width = window.innerWidth
+  canvas.height = window.innerHeight
+  updateShipSizes()
+  cannon.y = canvas.height  // Fixed distance from bottom
+}
+resizeCanvas()
+window.addEventListener('resize', resizeCanvas)
+
+/* ========== Game Logic ========== */
+function spawnShip(val) {
+  if (isOver) return
+  if (freeCols.length === 0) {
+    dropRows()
+    freeCols = [...Array(GRID_COLS).keys()]
+  }
+  const col = freeCols.splice(Math.random() * freeCols.length | 0, 1)[0]
+  const cellW = canvas.width / GRID_COLS
+  const x = cellW * col + cellW / 2
+  // Start ships below the UI
+  const startY = window.innerWidth <= 480 ? 140 : 80  // Higher start position on mobile
+  const y = startY
+  const color = amtColor(val)
+  const health = getHealth(val)
+  const score = getScore(val)
+  grid.push(new Ship(x, y, color, health, score, col))
+}
+
+function dropRows() {
+  grid.forEach(ship => {
+    ship.y += ROW_H
+    if (ship.y > canvas.height - ROW_H) gameOver()
+  })
+}
+
+function shoot() {
+  if (isPaused || isOver) return
+  bullets.push(new Bullet(cannon.x, cannon.y))
+  playSound('shoot')
+}
+
+function updateBullets() {
+  const BULLET_SPEED = 14
+  const cellW = canvas.width / GRID_COLS
+
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    const bullet = bullets[i]
+    bullet.y -= BULLET_SPEED
+
+    if (bullet.y < -20) {
+      bullets.splice(i, 1)
+      continue
+    }
+
+    for (let j = grid.length - 1; j >= 0; j--) {
+      const ship = grid[j]
+      // Increase hit area for better detection
+      const hitArea = ship.size * 1.2  // 20% larger hit area
+      if (Math.abs(bullet.x - ship.x) < hitArea && 
+          Math.abs(bullet.y - ship.y) < hitArea) {
+        ship.health--
+        if (ship.health <= 0) {
+          grid.splice(j, 1)
+          score += ship.score
+          document.getElementById('score').textContent = score
+          playSound('explosion')
+        } else {
+          playSound('hit')
+        }
+        bullets.splice(i, 1)
+        break
+      }
+    }
+  }
+}
+
+function gameLoop() {
+  if (!isPaused && !isOver) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    
+    // Draw all game objects
+    grid.forEach(ship => ship.draw())
+    bullets.forEach(bullet => bullet.draw())
+    cannon.draw()
+    
+    updateBullets()
+  }
+  requestAnimationFrame(gameLoop)
+}
+
+/* ========== RPC poll ========== */
+const seen = new Set()
+let busy = false
+const rpc = (m, p = []) => fetch(RPC_URL, {
+  method: 'POST',
+  headers: {'Content-Type': 'application/json'},
+  body: JSON.stringify({jsonrpc: '2.0', id: Date.now(), method: m, params: p})
+}).then(r => r.json()).then(d => {if(d.error)throw Error(d.error.message);return d.result})
+
+const poll = async () => {
+  if (busy || isPaused || isOver) return
+  try {
+    busy = true
+    const latest = parseInt(await rpc('eth_blockNumber'), 16)
+    const calls = [...Array(MAX_BLOCKS).keys()].map(i => ({
+      jsonrpc: '2.0',
+      id: i,
+      method: 'eth_getBlockByNumber',
+      params: [`0x${(latest-i).toString(16)}`, true]
+    }))
+    const res = await fetch(RPC_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(calls)
+    })
+    const blocks = await res.json()
+    const now = Date.now()
+    blocks.forEach(b => {
+      const blk = b.result
+      if (!blk || seen.has(blk.hash)) return
+      seen.add(blk.hash)
+      blk.transactions.forEach(tx => {
+        rpcTimes.push(now)
+        spawnShip(parseInt(tx.value, 16) / 1e18)
+      })
+      while (seen.size > 50) seen.delete(seen.values().next().value)
+    })
+    if (now - lastTPS > 200) {
+      const cut = now - TPS_WINDOW
+      while (rpcTimes.length && rpcTimes[0] < cut) rpcTimes.shift()
+      TPS = rpcTimes.length / (TPS_WINDOW / 1000)
+      lastTPS = now
+      document.getElementById('tps').textContent = Math.round(TPS)
+    }
+  } catch (e) { console.error(e) }
+  finally { busy = false }
+}
+
+setInterval(poll, POLL_MS)
+poll()
+
+/* ========== Input Handling ========== */
+function setX(x) {
+  cannon.x = Math.max(0, Math.min(canvas.width, x))
+}
+
+if ('ontouchstart' in window) {
+  canvas.addEventListener('pointerdown', e => {
+    e.preventDefault() // Prevent default touch behavior
+    setX(e.clientX)
+    shoot()
+  })
+  canvas.addEventListener('pointermove', e => {
+    e.preventDefault() // Prevent default touch behavior
+    setX(e.clientX)
+  })
+} else {
+  canvas.addEventListener('pointermove', e => setX(e.clientX))
+  canvas.addEventListener('pointerdown', shoot)
+}
+
+/* ========== UI Controls ========== */
+const pauseBtn = document.getElementById('pause')
+pauseBtn.addEventListener('click', e => {
+  e.preventDefault()
+  if (isOver) return
+  isPaused = !isPaused
+  pauseBtn.querySelector('.pause-icon').style.display = isPaused ? 'none' : 'block'
+  pauseBtn.querySelector('.play-icon').style.display = isPaused ? 'block' : 'none'
+  playSound('button')
+})
+
+const mode = document.getElementById('mode-toggle')
+let live = localStorage.getItem('rpcMode') !== 'blaze'
+const syncMode = () => {
+  mode.classList.toggle('live', live)
+  mode.classList.toggle('blaze', !live)
+}
+syncMode()
+mode.addEventListener('click', e => {
+  e.preventDefault()
+  live = !live
+  RPC_URL = live ? LIVE_RPC : TESTNET_RPC
+  localStorage.setItem('rpcMode', live ? 'live' : 'blaze')
+  syncMode()
+  playSound('button')
+})
+
+/* ========== Game Over ========== */
+function gameOver() {
+  if (isOver) return
+  isOver = true
+  document.getElementById('final').textContent = `GAME OVER\nSCORE ${score}`
+  document.getElementById('gameover').classList.add('show')
+  canvas.style.cursor = 'auto'
+}
+
+document.getElementById('restart').addEventListener('click', () => location.reload())
+
+// Add about button click handler
+document.getElementById('about').addEventListener('click', e => {
+  e.preventDefault()
+  document.querySelector('.about-modal').style.display = 'flex'
+  playSound('button')
+})
+
+// Close button handler
+document.querySelector('.close-button').addEventListener('click', () => {
+  document.querySelector('.about-modal').style.display = 'none'
+  playSound('button')
+})
+
+// Start the game loop
+gameLoop()
+
+// Update grid columns when window resizes
+window.addEventListener('resize', () => {
+  const newCols = window.innerWidth <= 1000 ? 50 : 100
+  if (newCols !== GRID_COLS) {
+    location.reload()  // Reload to reinitialize with new grid size
+  }
+})
+</script>
+</body>
+</html>
