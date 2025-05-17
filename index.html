@@ -68,11 +68,11 @@
     <div class="color-legend">
       <h3>Ship Colors</h3>
       <div class="color-grid">
-        <span class="color-dot" style="color:#ffffff">⬤</span><span class="color-text">0 S</span>
-        <span class="color-dot" style="color:#ff4545">⬤</span><span class="color-text">0 – 1 S</span>
-        <span class="color-dot" style="color:#d34ad8">⬤</span><span class="color-text">1 – 1 000 S</span>
-        <span class="color-dot" style="color:#5f6fe3">⬤</span><span class="color-text">1 000 – 100 000 S</span>
-        <span class="color-dot" style="color:#69d45b">⬤</span><span class="color-text">> 100 000 S</span>
+        <span class="color-dot" style="color:#bafdfe">⬤</span><span class="color-text">0 S</span>
+        <span class="color-dot" style="color:#ff4545">⬤</span><span class="color-text">0 - 1 S</span>
+        <span class="color-dot" style="color:#d34ad8">⬤</span><span class="color-text">1 - 1,000 S</span>
+        <span class="color-dot" style="color:#5f6fe3">⬤</span><span class="color-text">1,000 - 100,000 S</span>
+        <span class="color-dot" style="color:#69d45b">⬤</span><span class="color-text">> 100,000 S</span>
       </div>
     </div>
   </div>
@@ -136,7 +136,7 @@ const MAX_BLOCKS = 4
 let   lastAdvanceTime = Date.now()
 
 /* ---------- value helpers ---------- */
-const STAR = { ZERO:0xffffff, SMALL:0xff4545, MED:0xd34ad8, LARGE:0x5f6fe3, HUGE:0x69d45b }
+const STAR = { ZERO:0xbafdfe, SMALL:0xff4545, MED:0xd34ad8, LARGE:0x5f6fe3, HUGE:0x69d45b }
 const amtColor  = a => a === 0 ? STAR.ZERO  : a < 1      ? STAR.SMALL
                            : a <= 1e3 ? STAR.MED   : a <= 1e5 ? STAR.LARGE : STAR.HUGE
 const getHealth = a => a === 0 ? 1          : a < 1      ? 2
@@ -235,7 +235,7 @@ class Cannon{
 
 /* instantiate cannon before first resize */
 cannon = new Cannon()
-resizeCanvas()           /* now safe */
+resizeCanvas()
 
 /* ========== dynamic game state ========== */
 let score = 0
