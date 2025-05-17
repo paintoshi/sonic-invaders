@@ -213,7 +213,7 @@ body::after {
 }
 
 .about-modal .content {
-  max-width: 600px;
+  max-width: 650px;
   margin-bottom: 20px;
 }
 
@@ -290,5 +290,18 @@ body::after {
   #stats, #controls {
     width: 100%;
     justify-content: space-around;
+  }
+
+  .about-modal {
+    font-size: 10px;
+  }
+
+  .about-modal h2 {
+    font-size: 16px;
+  }
+
+  .about-modal .close-button {
+    font-size: 12px;
+    padding: 8px 20px;
   }
 }
