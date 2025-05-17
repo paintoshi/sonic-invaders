@@ -305,3 +305,46 @@ body::after {
     padding: 8px 20px;
   }
 }
+
+/* Start Modal Styles */
+#start-modal.modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(10, 12, 30, 0.92);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+#start-modal .modal-content {
+  background: #181c3a;
+  border-radius: 16px;
+  box-shadow: 0 4px 32px #000a;
+  padding: 2.5rem 2.5rem 2rem 2.5rem;
+  text-align: center;
+  color: #fff;
+  font-family: 'Press Start 2P', monospace;
+}
+#start-modal h2 {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  font-weight: normal;
+}
+#play-btn {
+  background: #00ff99;
+  color: #181c3a;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-family: 'Press Start 2P', monospace;
+  padding: 0.8rem 2.5rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  margin-top: 1rem;
+}
+#play-btn:hover {
+  background: #00cc77;
+  color: #fff;
+}
