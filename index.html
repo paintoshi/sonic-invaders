@@ -159,12 +159,12 @@ const amtColor  = a => {
 const getHealth = a => {
   const amountInS = a / 1e18;
   return amountInS === 0 ? 1          : amountInS < 1      ? 2
-                           : amountInS <= 1e3 ? 4         : amountInS <= 1e5 ? 8         : 16
+                           : amountInS <= 1e3 ? 3         : amountInS <= 1e5 ? 4         : 5
 }
 const getScore  = a => {
   const amountInS = a / 1e18;
-  return amountInS === 0 ? 1          : amountInS < 1      ? 4
-                           : amountInS <= 1e3 ? 8         : amountInS <= 1e5 ? 16        : 32
+  return amountInS === 0 ? 1          : amountInS < 1      ? 2
+                           : amountInS <= 1e3 ? 4         : amountInS <= 1e5 ? 8        : 16
 }
 
 /* ========== state containers ========== */
