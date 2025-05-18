@@ -212,9 +212,52 @@ body::after {
   z-index: 2000;
 }
 
+.about-modal::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 2001;
+}
+
 .about-modal .content {
   max-width: 650px;
   margin-bottom: 20px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid #00ffff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px #00ffff;
+  padding: 20px;
+  position: relative;
+  z-index: 2002;
+}
+
+.about-modal .content::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 2003;
 }
 
 .about-modal h2 {
@@ -312,39 +355,130 @@ body::after {
   top: 0; left: 0; right: 0; bottom: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(10, 12, 30, 0.92);
+  background: rgba(1, 11, 21, 0.9);
   display: none;
   align-items: center;
   justify-content: center;
   z-index: 10000;
 }
+
+#start-modal.modal::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 10001;
+}
+
 #start-modal .modal-content {
-  background: #181c3a;
-  border-radius: 16px;
-  box-shadow: 0 4px 32px #000a;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid #00ffff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px #00ffff;
   padding: 2.5rem 2.5rem 2rem 2.5rem;
   text-align: center;
   color: #fff;
   font-family: 'Press Start 2P', monospace;
+  position: relative;
+  z-index: 10002;
 }
+
+#start-modal .modal-content::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 10003;
+  border-radius: 8px;
+}
+
 #start-modal h2 {
   font-size: 1.2rem;
   margin-bottom: 2rem;
   font-weight: normal;
+  color: #00ffff;
+  position: relative;
+  z-index: 10004;
 }
+
+#start-modal h2::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 10005;
+}
+
 #play-btn {
-  background: #00ff99;
-  color: #181c3a;
+  background: #00ff00;
+  color: #010b15;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 1.1rem;
   font-family: 'Press Start 2P', monospace;
   padding: 0.8rem 2.5rem;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  box-shadow: 0 4px #00cc00;
+  transition: background-color 0.2s, transform 0.1s, box-shadow 0.1s;
   margin-top: 1rem;
+  position: relative;
+  z-index: 10004;
 }
+
+#play-btn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 10005;
+  border-radius: 6px;
+}
+
 #play-btn:hover {
-  background: #00cc77;
-  color: #fff;
+  background: #00cc00;
+}
+
+#play-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px #00cc00;
 }
