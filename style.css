@@ -74,6 +74,10 @@ body::after {
   margin-right: 4px;
 }
 
+#stats[data-chain="monad"]::before {
+  content: 'M';
+}
+
 .label {
   color: #aaa;
   font-size: 10px;
@@ -130,8 +134,8 @@ body::after {
   padding: 0 2px;
 }
 
-#mode-toggle.live .mode-live,
-#mode-toggle.blaze .mode-blaze {
+#mode-toggle.sonic .mode-sonic,
+#mode-toggle.monad .mode-monad {
   background: #00ffff;
   color: #010b15;
   border-radius: 3px;
